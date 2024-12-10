@@ -23,20 +23,11 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -60,6 +51,33 @@ class DefaultFirebaseOptions {
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDtxXyLOrKbVgSdcrdwoVA9b3VEmREdatI',
     appId: '1:687297746176:web:89d096a6c0318fe3d04fe5',
+    messagingSenderId: '687297746176',
+    projectId: 'edushare-59de0',
+    authDomain: 'edushare-59de0.firebaseapp.com',
+    storageBucket: 'edushare-59de0.appspot.com',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyB0Qqd0QGEx1Ab3G7IrCzzNacxDBX-AhEk',
+    appId: '1:687297746176:ios:4a618b3effe2fc53d04fe5',
+    messagingSenderId: '687297746176',
+    projectId: 'edushare-59de0',
+    storageBucket: 'edushare-59de0.appspot.com',
+    iosBundleId: 'com.example.edushare',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyB0Qqd0QGEx1Ab3G7IrCzzNacxDBX-AhEk',
+    appId: '1:687297746176:ios:4a618b3effe2fc53d04fe5',
+    messagingSenderId: '687297746176',
+    projectId: 'edushare-59de0',
+    storageBucket: 'edushare-59de0.appspot.com',
+    iosBundleId: 'com.example.edushare',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDtxXyLOrKbVgSdcrdwoVA9b3VEmREdatI',
+    appId: '1:687297746176:web:d427668edd02f869d04fe5',
     messagingSenderId: '687297746176',
     projectId: 'edushare-59de0',
     authDomain: 'edushare-59de0.firebaseapp.com',

@@ -1,19 +1,39 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:edushare/pages/profile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:edushare/pages/home.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 class searchPage extends StatefulWidget {
-  const searchPage({super.key});
+   searchPage({super.key});
 
   @override
   State<searchPage> createState() => _searchPageState();
 }
 
 class _searchPageState extends State<searchPage> {
+
+  late String _pfp;
+
+  Future<void> _fetchUserData() async {
+     User? _currentUser = FirebaseAuth.instance.currentUser;
+   
+    QuerySnapshot userSnapshot = await FirebaseFirestore.instance.collection('Users').where('email', isEqualTo: _currentUser!.email).get();
+    if (userSnapshot.docs.isNotEmpty) {
+      DocumentSnapshot userDoc = userSnapshot.docs.first;
+      setState(() {
+       
+        _pfp = userDoc['pfp'];
+      //  isMale = userDoc['isMale'];
+      });
+    }
+  }
 List allResults=[];
+
+  _searchPageState();
   getClientStream()async{
-    var data =await FirebaseFirestore.instance.collection('Project Information (Responses)').orderBy('Name',descending: false).get();
+    QuerySnapshot data =await FirebaseFirestore.instance.collection('Project Information (Responses)').get();
     setState(() {
       allResults=data.docs;
     }
@@ -43,12 +63,16 @@ List allResults=[];
   @override
   void initState() {
     getClientStream();
+    _fetchUserData();
     // TODO: implement initState
     super.initState();
   }
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      
       body: SafeArea(
         child: Column(
           children: [
@@ -84,11 +108,20 @@ List allResults=[];
                         ],
                       ),
                       
-                
-                        CircleAvatar(
-                          radius: 25,
-                          backgroundImage: AssetImage('assets/profile.png'),
-                        )
+                 InkWell(
+                            onTap: () {
+                              var auth = FirebaseAuth.instance;
+                //auth.signOut();
+               
+               Navigator.push(context, MaterialPageRoute(builder: (context)=>Profile()));
+              // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>landing()));
+                            },
+                            child: CircleAvatar(
+                              
+                              radius: 25,
+                              backgroundImage: AssetImage(_pfp),
+                            ),
+                          )
                     ],
                   ),
                 
@@ -120,13 +153,13 @@ List allResults=[];
                 ),
               ),
             Flexible(
-              child: ListView.builder(itemCount: searchresults.length,
+              child: ListView.builder(itemCount:searchcontroller.text==''?allResults.length: searchresults.length,
                 itemBuilder: (context,index){                 
                             
                             String Name = searchresults[index]['Title of the Project'];
                             String Author = searchresults[index]['Name'];
-                            String Status = searchresults[index]['Status'];
-                            return Card(Name: Name, Author: Author,Status: Status);
+                            // String Status = searchresults[index]['Status']; 
+                            return Card(Name: Name, Author: Author);
                           },
               ),
             )
@@ -134,75 +167,11 @@ List allResults=[];
           ],
         ),
       ),
-      bottomNavigationBar: navbar(),
+      
     );
   }
 }
 
-
-class navbar extends StatefulWidget {
-  const navbar({
-    super.key,
-  });
-
-  @override
-  State<navbar> createState() => _navbarState();
-}
-
-class _navbarState extends State<navbar> {
-  
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 85,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(11))
-      ),
-      child: GNav(
-        backgroundColor: const Color.fromRGBO(0, 0, 0, 1),
-        color: Colors.white,
-        activeColor: Colors.black,
-        tabBorderRadius: 25,
-        tabBackgroundColor:  Color(0xFFFFFFFF),
-        iconSize: 27,
-       
-        textStyle: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
-        ),
-       gap: 8,
-        tabs: [
-        
-        GButton(padding : EdgeInsets.symmetric(horizontal: 25,vertical: 10),
-        icon: Icons.home_outlined,
-        text: "Home",
-        textSize: 20,
-        iconActiveColor: Colors.black,
-        //backgroundColor: Colors.blue[200],
-        ),
-        GButton(
-          padding : EdgeInsets.symmetric(horizontal: 25,vertical: 10),
-          icon: Icons.search,
-          text: "Search",
-          onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>searchPage()));
-          },
-          textSize: 20,),
-        GButton(padding : EdgeInsets.symmetric(horizontal: 25,vertical: 10),
-          icon: Icons.add,
-          text: "Post",
-          textSize: 20,
-          ),
-        GButton(padding : EdgeInsets.symmetric(horizontal: 25,vertical: 10),
-          icon: CupertinoIcons.chat_bubble,
-          text: "Chat",
-          ),
-        
-      ],),
-    );
-  }
-}
 
 
   
@@ -211,12 +180,12 @@ class Card extends StatefulWidget {
     super.key,
     required this.Name,
     required this.Author, 
-    required this.Status,
+     this.Status = null
   });
 
   final String Name;
   final String Author;
-  final String Status;
+  final String? Status;
   @override
   State<Card> createState() => _CardState();
 }
@@ -226,6 +195,8 @@ class _CardState extends State<Card> {
    
   @override
   Widget build(BuildContext context) {
+   
+    bool status = (widget.Status == null)? false: true;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 8),
       child:
@@ -237,16 +208,16 @@ class _CardState extends State<Card> {
           });
         },
          child: Container(
-          height: isFocus?200:90,
+          height: isFocus?200:120,
           width: double.infinity,
             decoration: BoxDecoration(
-              color: Color.fromARGB(255, 33, 37, 41),
-              borderRadius: BorderRadius.circular(11),
+              color: Colors.white,
+             // borderRadius: BorderRadius.circular(11),
        
               ),
                   
             child: Padding(
-                     padding: const EdgeInsets.all(8.0),
+                     padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal:16),
                         child: !isFocus?Column(
                           
                           children: [
@@ -254,40 +225,107 @@ class _CardState extends State<Card> {
                               alignment: Alignment.centerLeft,
        
                               child: Text(widget.Name,style: TextStyle(fontSize: 16,
-                              fontWeight: FontWeight.bold,color: Colors.white),)),
+                              fontWeight: FontWeight.bold,color: Colors.black),)),
        
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Text(widget.Author,style: TextStyle(color: Colors.white),),
+                                child: Text(widget.Author,style: TextStyle(color: Colors.black),),
                               ))
                           ],
                         ):Column(
+                          
                           children: [
                             Align(
                               alignment: Alignment.centerLeft,
        
                               child: Text(widget.Name,style: TextStyle(fontSize: 24,
-                              fontWeight: FontWeight.bold,color: Colors.white),)),
+                              fontWeight: FontWeight.bold,color: Colors.black),)),
        
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Text(widget.Author,style: TextStyle(color: Colors.white),),
+                                child: Text(widget.Author,style: TextStyle(color: Colors.black),),
                               )),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Text(widget.Status,style: TextStyle(color: Colors.white,),),
-                              ))
+                           Spacer(),
+                            Row(
+                              children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 10
+                                    ),
+                                    child: Container(
+                                      height: 40,
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                         borderRadius: BorderRadius.all(Radius.circular(11)),
+                                              border: Border.all(color: Colors.black,width: 2),
+                                             color: Color(0xfffaf2fb),
+                                      ),
+                                      child: Center(child: Text("View ",style: TextStyle(
+                                               fontWeight: FontWeight.bold
+                                            ),)),
+                                    ),
+                                  ),
+                                ),
+
+                                 Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 10,
+                                      left: 10
+                                      
+                                    ),
+                                    child: Container(
+                                      height: 40,
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                         borderRadius: BorderRadius.all(Radius.circular(11)),
+                                              border: Border.all(color: Colors.black,width: 2),
+                                             color: Color(0xfffaf2fb),
+                                      ),
+                                      child: Center(child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text("Add ",style: TextStyle(
+                                                   fontWeight: FontWeight.bold
+                                                ),),
+                                                Icon(Icons.add,color: Colors.black,size: 20,)
+                                        ],
+                                      )),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
                           ],
                         ),
                       ),
              ),
        ),
+    );
+  }
+}
+
+class searchWeb extends StatefulWidget {
+  const searchWeb({super.key});
+
+  @override
+  State<searchWeb> createState() => _searchWebState();
+}
+
+class _searchWebState extends State<searchWeb> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        color: Colors.blue,
+      ),
     );
   }
 }

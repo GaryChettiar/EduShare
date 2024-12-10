@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:edushare/authservice.dart';
 import 'package:edushare/pages/Registration.dart';
 import 'package:edushare/pages/home.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
@@ -10,12 +13,47 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+final _auth = AuthService();
+String username ="";
+Future<DocumentSnapshot?> getUserByEmail(String email) async {
+    try {
+      CollectionReference users = FirebaseFirestore.instance.collection('Users');
+      QuerySnapshot querySnapshot = await users.where('email', isEqualTo: email).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error getting user by email: $e");
+      return null;
+    }
+  }
 
+ Future< void> checkEmail(String email) async {
+  DocumentSnapshot? userDoc = await getUserByEmail(email);
+  print('chekEmail CALLED');
+  if (userDoc != null) {
+    // Email found in Firestore
+    print("User found: ${userDoc['username']}");
+    setState(() {
+      username=userDoc['username'].toString();
+
+    });
+    return;
+  } else {
+    // Email not found
+    print("No user found with email: $email");
+    return;
+  }
+}
    final TextEditingController email = new TextEditingController();
    final TextEditingController password = new TextEditingController();
   @override
   Widget build(BuildContext context) {
+   
     return Scaffold(
+      
       body: Container(
         width: MediaQuery.sizeOf(context).width,
         decoration: BoxDecoration(
@@ -33,7 +71,7 @@ class _LoginState extends State<Login> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                 child: Align(
-                  child: Text("Register",style: TextStyle(
+                  child: Text("Login",style: TextStyle(
                     fontFamily: "Comfortaa",
                     fontSize: 36,
                           fontWeight: FontWeight.bold
@@ -43,32 +81,45 @@ class _LoginState extends State<Login> {
               ),
 
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 10),
+                padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 5),
                 child: Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.center,
                   child: RegInput(email: email,text: "Email",)),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 10),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.center,
                   child: RegInput(email: password,text: "Password",)),
               ),
 
               InkWell(
 
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=> Home()));
+                onTap: () async{
+                  final _user = await _auth.loginUserWithEmail(email.text, password.text);
+                  final user = FirebaseAuth.instance.currentUser;
+                  print(email.text);
+                 
+                 
+                  await checkEmail(email.text);
+                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Home()));
+                 // if(username != null){
+                   // print("user logged in");
+                   
+                  //}else{
+                   // print('username is null');
+                  //}/*
+                  //*/
                 },
 
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 11,vertical: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: Alignment.center,
                     child: Container(
                         
                         height: MediaQuery.sizeOf(context).height*0.064,
-                        width: MediaQuery.sizeOf(context).width*0.914,
+                        width: MediaQuery.sizeOf(context).width*0.99,
                         
                         decoration: BoxDecoration(
                           color: Colors.black,
